@@ -1,0 +1,48 @@
+# Cluster domain
+domain: test414.com
+# Cluster name
+cluster: someone-test
+
+# RHCOS image name in the libvirt storage pool
+# You can leave it empty for kcli to download and use the release specific image
+#image: /home/qemu/libvirt/images/rhcos-412.86.202212081411-0-openstack.x86_64.qcow2
+#imagecontentsources: []
+mdns: True
+
+# Uncomment the below line for disconnected installs
+#disconnected_deploy: True
+
+# Libvirt network name eg. 192.168.10.0/24
+network: default
+# Libvirt storage pool
+pool: default
+
+# If you are creating multiple clusters on the same network, then explicitly
+# assign api_ip to avoid using the same IP for different clusters
+api_ip: 192.168.122.253
+
+# Copy the pull secret to a file and specify the filename details
+pull_secret: openshift_pull.json
+
+# Release version number: 4.8/4.9/4.10
+tag: 4.14.5
+# Build type: nightly/stable. The latest nightly or stable build will be automatically downloaded
+# If specific version is required then download openshift-install from
+# https://mirror.openshift.com/pub/openshift-v4/clients and
+# place it in /home/kcli/.local/bin:/home/kcli/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/kcli/go/bin to use the same for install
+version: stable
+
+fips: true
+manifests: manifests
+ctlplanes: 1
+workers: 0
+numcpus: 8
+disk_size: 100
+extra_disks: [100,100]
+bootstrap_memory: 16384
+ctlplane_memory: 40960
+worker_memory: 40960
+bootstrap_numcpus: 2
+ctlplane_numcpus: 32
+worker_numcpus: 32
+network_type: OVNKubernetes
