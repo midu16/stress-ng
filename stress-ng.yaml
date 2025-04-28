@@ -1,0 +1,97 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    openshift.io/sa.scc.mcs: s0:c31,c0
+    openshift.io/sa.scc.supplemental-groups: 1000930000/10000
+    openshift.io/sa.scc.uid-range: 1000930000/10000
+  labels:
+    kubernetes.io/metadata.name: stress-ng
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+  name: stress-ng
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stress-ng
+  namespace: stress-ng
+spec:
+  replicas: 97
+  selector:
+    matchLabels:
+      app: stress-ng
+  template:
+    metadata:
+      labels:
+        app: stress-ng
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: cnfdc13.t5g-dev.eng.rdu2.dc.redhat.com
+      containers:
+      - name: stress-ng
+        image: quay.io/midu/stress-ng:latest
+        command:
+        - /bin/sh
+        args:
+        - -c
+        - cd /tmp/; stress-ng --timeout 60s --pthread 10
+        resources:
+          requests:
+            memory: "300Mi"
+            cpu: "1m"
+          limits:
+            memory: "20Gi"
+            cpu: "10"
+              # livenessProbe:
+              # exec:
+              # command:
+              # - /bin/sh
+              # - -c
+              #- "[ $((RANDOM % 2)) -ne 0 ]"
+              # -  "[ $((RANDOM % 20)) -ge 18 ]"  # 10% chance to fail (20 % 18 -> 10% failure)
+              # initialDelaySeconds: 10
+              # periodSeconds: 5
+              # failureThreshold: 1
+              # readinessProbe:
+              # exec:
+              # command:
+              # - /bin/sh
+              # - -c
+              #- "[ $((RANDOM % 10)) -lt 4 ]"
+              # -  "[ $((RANDOM % 20)) -ge 18 ]"  # 10% chance to fail (20 % 18 -> 10% failure) 
+              # initialDelaySeconds: 5
+              # periodSeconds: 5
+              # failureThreshold: 1
+      - name: net-stress
+        image: quay.io/midu/stress-ng:latest  
+        command:
+        - /bin/sh
+        args:
+        - -c
+        - |
+          # Start simple HTTP server in background
+          python3 -m http.server 8080 &
+
+          # Wait for server to come up
+          sleep 2
+
+          # Start 10 curl loops in background
+          for i in $(seq 1 10); do
+            while true; do
+              curl -s http://localhost:8080 >/dev/null
+            done &
+          done
+
+          # Keep container alive
+          wait
+        resources:
+          requests:
+            memory: "100Mi"
+            cpu: "50m"
+          limits:
+            memory: "500Mi"
+            cpu: "2"
